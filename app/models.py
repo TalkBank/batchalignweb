@@ -48,10 +48,10 @@ class Job(models.Model):
 
     # string representation
     def __str__(self):
-        return f"Job {job_id}" + (" for " + self.corpus.name) if self.corpus else ""
+        return f"Job {self.job_id}" + (" for " + self.corpus.name) if self.corpus else ""
 
 
-def file_path(instance, path=""):
+def file_path(path, instance, file_name):
     """Return the path to upload
 
     Attributes:
@@ -59,7 +59,7 @@ def file_path(instance, path=""):
         path (str): type of model (i.e. subdirectory)
     """
 
-    return f"{path}/{instance.job.corpus.name}" if instance.job.corpus else f"{path}/"
+    return f"{path}/{instance.job.corpus.name}/{file_name}" if instance.job.corpus else f"{path}/{file_name}"
 
 class Audio(models.Model):
     # Audio files submitted as a part of a job
