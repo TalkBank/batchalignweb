@@ -19,7 +19,7 @@ class Corpus(models.Model):
 
     # string representation
     def __str__(self):
-        return f"Corpus {self.name}"
+        return f"{self.name}"
 
 class Job(models.Model):
     # Serialize enums for job states
@@ -37,6 +37,8 @@ class Job(models.Model):
     job_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # corpus to which the job belongs, deletes all job of corpus is deleted
     corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE, null=True)
+    # Name of the job
+    name = models.CharField(max_length=200)
     # name of the submitter
     submitter_name = models.CharField(max_length=200)
     # email of the submitter

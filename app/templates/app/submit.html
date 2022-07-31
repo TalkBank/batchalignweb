@@ -1,0 +1,15 @@
+{% extends "./base.html" %}
+
+{% block content %}
+
+<div id="submission" class="mainblock">
+  <h1 class="title">Welcome!</h1>
+  <h2 class="subtitle">Let's submit to TalkBank</h2>
+  <form action="/jobs" method="post">
+    {% csrf_token %}
+    {{ form }}
+    <input type="submit" value="Submit" id="submit">
+  </form>
+</div>
+
+{% endblock %}

@@ -2,9 +2,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 
+# import our forms
+from .forms import SubmissionForm
+
 # index view to submit a job
-def index(req):
-    return render(req, "app/index.html", {})
+def submit(req):
+    form = SubmissionForm()
+    return render(req, "app/submit.html", {'form': form})
 
 # import asyncio
 # from django.http import JsonResponse
