@@ -1,0 +1,3 @@
+[submodule "app/batchalign"]
+	path = app/batchalign
+	url = git@github.com:TalkBank/batchalign.git
