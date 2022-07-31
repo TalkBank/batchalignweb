@@ -1,6 +1,7 @@
 from django.db import models
 from functools import partial
 import uuid
+import time
 
 # Create your models here.
 from django.db import models
@@ -51,22 +52,22 @@ class Job(models.Model):
         return f"Job {self.job_id}" + (" for " + self.corpus.name) if self.corpus else ""
 
 
-def file_path(path, instance, file_name):
+def file_path(instance, file_name):
     """Return the path to upload
 
     Attributes:
         instance (models.Model): model instance
-        path (str): type of model (i.e. subdirectory)
+        file_name (str): name of the file
     """
 
-    return f"{path}/{instance.job.corpus.name}/{file_name}" if instance.job.corpus else f"{path}/{file_name}"
+    return f"{instance.job.job_id}/in/{file_name}"
 
 class Audio(models.Model):
     # Audio files submitted as a part of a job
     # when a job gets deleted, the audio file should go too
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     # the actual audio file (upload to corpus folder if existing)
-    file = models.FileField(upload_to=partial(file_path, "audio"))
+    file = models.FileField(upload_to=file_path)
 
     # string representation
     def __str__(self):
@@ -77,7 +78,7 @@ class Transcript(models.Model):
     # when a job gets deleted, the audio file should go too
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     # the actual transcript file
-    file = models.FileField(upload_to=partial(file_path, "transcript"))
+    file = models.FileField(upload_to=file_path)
 
     # string representation
     def __str__(self):
@@ -92,7 +93,7 @@ class Fluency(models.Model):
     # when a job gets deleted, the audio file should go too
     job = models.ForeignKey(Job, on_delete=models.CASCADE)
     # the actual fluency file
-    file = models.FileField(upload_to=partial(file_path, "fluency"))
+    file = models.FileField(upload_to=file_path)
     
     # string representation
     def __str__(self):

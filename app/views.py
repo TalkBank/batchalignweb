@@ -12,6 +12,11 @@ from .models import Job, Audio
 import asyncio
 from asgiref.sync import sync_to_async
 
+# import batchalign
+from .batchalign.ba.fa import do_align
+# from .batchalign.utils import cleanup, globase
+from .batchalign.ba.retokenize import retokenize_directory
+
 # async function to run job
 @sync_to_async
 def run_job(job):
