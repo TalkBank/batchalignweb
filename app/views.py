@@ -8,12 +8,18 @@ from .forms import SubmissionForm
 # and import our models for Job
 from .models import Job, Audio
 
-# index view to submit a job
-def submit(req):
-    # create and render submission form
-    form = SubmissionForm()
-    return render(req, "app/submit.html", {'form': form})
+# async utilities
+import asyncio
+from asgiref.sync import sync_to_async
 
+# async function to run job
+@sync_to_async
+def run_job(job):
+    asyncio.sleep(20)
+    job.status = Job.SUCCESS
+    job.save()
+
+# function handle job submission
 def handle_job_submission(req):
     # recreate the submitted form
     form = SubmissionForm(req.POST, req.FILES)
@@ -26,8 +32,16 @@ def handle_job_submission(req):
     # and serialize the audio
     audio = Audio(job=job, file=form.cleaned_data["audio"])
     audio.save()
+    # start the job running
+    asyncio.run(run_job(job))
     # return UUID
     return job.job_id
+
+# index view to submit a job
+def submit(req):
+    # create and render submission form
+    form = SubmissionForm()
+    return render(req, "app/submit.html", {'form': form})
 
 # index view to submit a job
 def jobs(req, job_id=None):
