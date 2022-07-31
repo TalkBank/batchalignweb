@@ -10,7 +10,7 @@ class Corpus(models.Model):
     # A collection of jobs
     name = models.CharField(max_length=200)
     # Maintainer
-    submitter_email = models.EmailField()
+    maintainer_email = models.EmailField()
 
 class Job(models.Model):
     # Serialize enums for job states
