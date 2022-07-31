@@ -4,5 +4,5 @@ from django.http import HttpResponse
 
 # index view to submit a job
 def index(req):
-    return HttpResponse('test')
+    return render(req, "app/index.html", {})
 
