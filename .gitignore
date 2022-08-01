@@ -160,5 +160,7 @@ cython_debug/
 #.idea/
 
 media/
-/.DS_Store
+.DS_Store
 *.py#
+
+/app/static/app/models/

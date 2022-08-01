@@ -6,23 +6,80 @@ from django.http import HttpResponse, HttpResponseRedirect
 from .forms import SubmissionForm
 
 # and import our models for Job
-from .models import Job, Audio
+from .models import Job, Audio, Transcript
 
 # async utilities
 import asyncio
 from asgiref.sync import sync_to_async
+# threading utilities
+from threading import Thread
 
 # import batchalign
 from .batchalign.ba.fa import do_align
-# from .batchalign.utils import cleanup, globase
+from .batchalign.ba.utils import cleanup, globase
 from .batchalign.ba.retokenize import retokenize_directory
+# getting keys, variables, etc.
+from django.conf import settings 
+
+# static pages
+from django.templatetags.static import static
+
+# pathing utils
+import os
+
+# global worker
+WORKER = asyncio.new_event_loop()
+
+# function to run the event loop
+def f(loop):
+    asyncio.set_event_loop(loop)
+    loop.run_forever()
+
+# start the worker loop on a different thread
+t = Thread(target=f, args=(WORKER,), daemon=True)
+t.start()
 
 # async function to run job
-@sync_to_async
-def run_job(job):
-    asyncio.sleep(20)
-    job.status = Job.SUCCESS
-    job.save()
+async def run_job(job):
+    print("HWEOOOOOO")
+    # get tokenization model
+    model = settings.TOKENIZATION_MODEL
+    model_path = f'app/static/app/models/{model}/'
+    # get the path to media
+    media_path = settings.MEDIA_ROOT
+    # get the API key
+    key = settings.REV_API_KEY
+
+    # get job id
+    id = str(job.job_id)
+
+    # get or create the i/o directories
+    in_dir = os.path.join(media_path, id, "in")
+    out_dir = os.path.join(media_path, id, "out")
+    # make out directory
+    os.mkdir(out_dir)
+
+    # retokenize the directory!
+    retokenize_directory(in_dir, model_path, False, key)
+
+    # and then, run MFA!
+    do_align(in_dir, out_dir, "data", prealigned=True, beam=200, align=True, clean=True)
+    
+    # find the output
+    out_file = globase(out_dir, "*.cha")
+
+    # if the length is <1, we failed
+    # TODO check reason
+    if len(out_file) < 1:
+        job.status = Job.FAIL
+        job.save()
+    # otherwise, we have succeded, so let's get the file
+    else:
+        transcript = Transcript(job=job)
+        transcript.file.name = out_file[0]
+        transcript.save()
+
+    # and done!
 
 # function handle job submission
 def handle_job_submission(req):
@@ -38,7 +95,8 @@ def handle_job_submission(req):
     audio = Audio(job=job, file=form.cleaned_data["audio"])
     audio.save()
     # start the job running
-    asyncio.run(run_job(job))
+    # WORKER.call_soon_threadsafe(asyncio.async, run_job(job))
+    future = asyncio.run_coroutine_threadsafe(run_job(job), WORKER)
     # return UUID
     return job.job_id
 
