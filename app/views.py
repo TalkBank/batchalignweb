@@ -1,6 +1,7 @@
 # Create your views here.
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
+from django.urls.resolvers import Error
 
 # import our forms
 from .forms import SubmissionForm
@@ -13,6 +14,10 @@ import asyncio
 from asgiref.sync import sync_to_async
 # threading utilities
 from threading import Thread
+import time
+
+# atomic transations
+from django.db import transaction
 
 # import batchalign
 from .batchalign.ba.fa import do_align
@@ -36,12 +41,14 @@ def f(loop):
     loop.run_forever()
 
 # start the worker loop on a different thread
+# in n different threads
 t = Thread(target=f, args=(WORKER,), daemon=True)
 t.start()
 
 # async function to run job
-async def run_job(job):
-    print("HWEOOOOOO")
+@transaction.atomic
+@sync_to_async
+def run_job(job):
     # get tokenization model
     model = settings.TOKENIZATION_MODEL
     model_path = f'app/static/app/models/{model}/'
@@ -60,11 +67,15 @@ async def run_job(job):
     os.mkdir(out_dir)
 
     # retokenize the directory!
+    # TODO
     retokenize_directory(in_dir, model_path, False, key)
 
     # and then, run MFA!
     do_align(in_dir, out_dir, "data", prealigned=True, beam=200, align=True, clean=True)
     
+    print("NO")
+    time.sleep(10)
+    print("YES")
     # find the output
     out_file = globase(out_dir, "*.cha")
 
@@ -75,6 +86,8 @@ async def run_job(job):
         job.save()
     # otherwise, we have succeded, so let's get the file
     else:
+        job.status = Job.SUCCESS
+        job.save()
         transcript = Transcript(job=job)
         transcript.file.name = out_file[0]
         transcript.save()

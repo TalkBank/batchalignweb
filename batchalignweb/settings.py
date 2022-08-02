@@ -10,8 +10,22 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+# PLEASE NOTE: some other (secret) settings
+# are located in the .env file in the top
+# directory, which is not commited to the
+# repository. These include the SECRET_KEY
+# and REV_API_KEY variables.
+
 # configurable settings
 TOKENIZATION_MODEL="true-wildflower-5"
+NUM_WORKERS=5
+
+
+
+
+
+
+#############################
 
 import os 
 
